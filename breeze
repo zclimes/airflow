@@ -210,6 +210,10 @@ function breeze::setup_default_breeze_constants() {
 #    OSTYPE
 #
 #######################################################################################################
+function breeze::print_pip_command() {
+  echo "CASS_DRIVER_NO_CYTHON=\"1\" pip install -e \".[devel]\" --constraint \"https://raw.githubusercontent.com/apache/airflow/${DEFAULT_CONSTRAINTS_BRANCH}/constraints-${PYTHON_MAJOR_MINOR_VERSION}.txt\""
+}
+
 function breeze::initialize_virtualenv() {
     # Check if we are inside virtualenv
     set +e
@@ -1243,6 +1247,13 @@ function breeze::parse_arguments() {
             last_subcommand="${1}"
             command_to_run="perform_push_image"
             export SKIP_CHECK_REMOTE_IMAGE="true"
+            shift
+            ;;
+        print-pip-command)
+            last_subcommand="${1}"
+            echo "Printing pip command"
+            echo
+            command_to_run="perform_print_pip_command"
             shift
             ;;
         initialize-local-virtualenv)
@@ -3058,7 +3069,7 @@ function breeze::run_build_command() {
             build_images::prepare_ci_build
         fi
         ;;
-    perform_initialize_local_virtualenv | perform_setup_autocomplete | toggle_suppress_cheatsheet | toggle_suppress_asciiart ) ;;
+    perform_print_pip_command | perform_initialize_local_virtualenv | perform_setup_autocomplete | toggle_suppress_cheatsheet | toggle_suppress_asciiart ) ;;
 
     manage_kind_cluster)
         if [[ ${KIND_CLUSTER_OPERATION} == "start" ]]; then
@@ -3204,6 +3215,9 @@ function breeze::run_breeze_command() {
         else
             push_pull_remove_images::push_ci_images
         fi
+        ;;
+    perform_print_pip_command)
+        breeze::print_pip_command
         ;;
     perform_initialize_local_virtualenv)
         breeze::initialize_virtualenv
